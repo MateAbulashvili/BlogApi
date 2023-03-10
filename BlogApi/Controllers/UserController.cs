@@ -43,7 +43,6 @@ namespace BlogApi.Controllers
         [HttpPut("Update")]
         public IActionResult Update(int id, User model)
         {
-
             _userService.Update(id, model);
             return Ok(new { message = "User updated" });
         }
