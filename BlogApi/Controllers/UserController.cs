@@ -1,8 +1,11 @@
 ﻿using BlogApi.Models;
 using BlogApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using System.Security.Claims;
+
 namespace BlogApi.Controllers
 {
     [Route("api/[controller]")]
@@ -16,6 +19,7 @@ namespace BlogApi.Controllers
             _context = context;
             _userService = userService;
         }
+       
         [HttpGet]
         IActionResult GetAll()
         {
@@ -48,6 +52,29 @@ namespace BlogApi.Controllers
         {
             _userService.Delete(id);
             return Ok(new { message = "User deleted" });
+        }
+        [HttpGet("Admins")]
+        [Authorize(Roles = "Admin")] 
+        public IActionResult AdminsEndpoint()
+        {
+            var currentUser = GetCurrentUser();
+            return Ok($"Hi you are authorized");
+        }
+        private User GetCurrentUser()
+        {
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            if(identity != null)
+            {
+                var userClaims = identity.Claims;
+                return new User
+                {
+                    FirstName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.NameIdentifier)?.Value,
+                    Email = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Email)?.Value,
+                    LastName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Surname)?.Value,
+                };
+                
+            }
+            return null;
         }
     }
 }
